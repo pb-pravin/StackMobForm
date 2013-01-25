@@ -7,19 +7,31 @@
 //
 
 #import "SMFAppDelegate.h"
+#import "StackMob.h"
+#import "SMClient.h"
+#import "SMFListViewController.h"
 
 @implementation SMFAppDelegate
 
-@synthesize managedObjectContext = _managedObjectContext;
-@synthesize managedObjectModel = _managedObjectModel;
-@synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
+@synthesize managedObjectContext        = _managedObjectContext;
+@synthesize managedObjectModel          = _managedObjectModel;
+@synthesize persistentStoreCoordinator  = _persistentStoreCoordinator;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    // Override point for customization after application launch.
-    self.window.backgroundColor = [UIColor whiteColor];
+#warning Yo, need your public key here
+    
+    self.client = [[SMClient alloc] initWithAPIVersion:@"0" publicKey:@"THIS-IS-NOT-THE-KEY-YOU-ARE-LOOKING-FOR"];
+
+    SMFListViewController *listViewController = [[SMFListViewController alloc] init];
+    
+    self.navController              = [[UINavigationController alloc] initWithRootViewController:listViewController];
+    self.window                     = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window.rootViewController  = self.navController;
+    self.window.backgroundColor     = [UIColor whiteColor];
+    
     [self.window makeKeyAndVisible];
+    
     return YES;
 }
 
@@ -75,11 +87,16 @@
         return _managedObjectContext;
     }
     
-    NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];
-    if (coordinator != nil) {
-        _managedObjectContext = [[NSManagedObjectContext alloc] init];
-        [_managedObjectContext setPersistentStoreCoordinator:coordinator];
-    }
+//    NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];
+//    if (coordinator != nil) {
+//        _managedObjectContext = [[NSManagedObjectContext alloc] init];
+//        [_managedObjectContext setPersistentStoreCoordinator:coordinator];
+//    }
+//    return _managedObjectContext;
+    
+    SMCoreDataStore *coreDataStore = [self.client coreDataStoreWithManagedObjectModel:self.managedObjectModel];
+    _managedObjectContext = [coreDataStore contextForCurrentThread];
+    
     return _managedObjectContext;
 }
 
@@ -97,46 +114,46 @@
 
 // Returns the persistent store coordinator for the application.
 // If the coordinator doesn't already exist, it is created and the application's store added to it.
-- (NSPersistentStoreCoordinator *)persistentStoreCoordinator
-{
-    if (_persistentStoreCoordinator != nil) {
-        return _persistentStoreCoordinator;
-    }
-    
-    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"StackMobForm.sqlite"];
-    
-    NSError *error = nil;
-    _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
-    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
-        /*
-         Replace this implementation with code to handle the error appropriately.
-         
-         abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
-         
-         Typical reasons for an error here include:
-         * The persistent store is not accessible;
-         * The schema for the persistent store is incompatible with current managed object model.
-         Check the error message to determine what the actual problem was.
-         
-         
-         If the persistent store is not accessible, there is typically something wrong with the file path. Often, a file URL is pointing into the application's resources directory instead of a writeable directory.
-         
-         If you encounter schema incompatibility errors during development, you can reduce their frequency by:
-         * Simply deleting the existing store:
-         [[NSFileManager defaultManager] removeItemAtURL:storeURL error:nil]
-         
-         * Performing automatic lightweight migration by passing the following dictionary as the options parameter:
-         @{NSMigratePersistentStoresAutomaticallyOption:@YES, NSInferMappingModelAutomaticallyOption:@YES}
-         
-         Lightweight migration will only work for a limited set of schema changes; consult "Core Data Model Versioning and Data Migration Programming Guide" for details.
-         
-         */
-        NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-        abort();
-    }    
-    
-    return _persistentStoreCoordinator;
-}
+//- (NSPersistentStoreCoordinator *)persistentStoreCoordinator
+//{
+//    if (_persistentStoreCoordinator != nil) {
+//        return _persistentStoreCoordinator;
+//    }
+//    
+//    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"StackMobForm.sqlite"];
+//    
+//    NSError *error = nil;
+//    _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
+//    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
+//        /*
+//         Replace this implementation with code to handle the error appropriately.
+//         
+//         abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
+//         
+//         Typical reasons for an error here include:
+//         * The persistent store is not accessible;
+//         * The schema for the persistent store is incompatible with current managed object model.
+//         Check the error message to determine what the actual problem was.
+//         
+//         
+//         If the persistent store is not accessible, there is typically something wrong with the file path. Often, a file URL is pointing into the application's resources directory instead of a writeable directory.
+//         
+//         If you encounter schema incompatibility errors during development, you can reduce their frequency by:
+//         * Simply deleting the existing store:
+//         [[NSFileManager defaultManager] removeItemAtURL:storeURL error:nil]
+//         
+//         * Performing automatic lightweight migration by passing the following dictionary as the options parameter:
+//         @{NSMigratePersistentStoresAutomaticallyOption:@YES, NSInferMappingModelAutomaticallyOption:@YES}
+//         
+//         Lightweight migration will only work for a limited set of schema changes; consult "Core Data Model Versioning and Data Migration Programming Guide" for details.
+//         
+//         */
+//        NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+//        abort();
+//    }    
+//    
+//    return _persistentStoreCoordinator;
+//}
 
 #pragma mark - Application's Documents directory
 
